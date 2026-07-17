@@ -1,0 +1,33 @@
+translationId,languageCode,languageNameInEnglish,branch,script,OTverses,NTverses,DCverses,totalVerses
+deutkw,deu,"German, Standard",Germanic,Latin,23206,7951,0,31157
+engbsb,eng,English,Germanic,Latin,23145,7941,0,31086
+hin2017,hin,Hindi,Indo-Aryan,Devanagari,23145,7959,0,31104
+asmfb,asm,Assamese,Indo-Aryan,Bengali,23137,7955,0,31092
+benobcv,ben,Bengali,Indo-Aryan,Latin,23144,7956,0,31100
+ces1613,ces,Czech,Slavic,Latin,23214,7958,0,31172
+ckb,ckb,Central Kurdish,Iranian,Arabic,23145,7958,0,31103
+dan1931,dan,Danish,Germanic,Latin,23211,7957,0,31168
+frasbl,fra,French,Romance,Latin,23145,7958,6955,38058
+guj2017,guj,Gujarati,Indo-Aryan,Gujarati,23145,7959,0,31104
+hne,hne,Chhattisgarhi,Indo-Aryan,Devanagari,23145,7958,0,31103
+hrv,hrv,Croatian,Slavic,Latin,23212,7957,4279,35448
+isl,isl,Icelandic,Germanic,Latin,2325,7581,0,9906
+ita1927,ita,Italian,Romance,Latin,23145,7957,0,31102
+latVUC,lat,Latin,Romance,Latin,23483,7951,4375,35809
+lit,lit,Lithuanian,Baltic,Latin,2581,4554,0,7135
+mar,mar,Marathi,Indo-Aryan,Devanagari,23143,7944,0,31087
+nld1939,nld,Dutch,Germanic,Latin,22787,7956,4592,35335
+noblb,nob,Norwegian,Germanic,Latin,0,7748,0,7748
+npiulb,npi,Nepali,Indo-Aryan,Latin,23145,7957,0,31102
+ory,ory,Oriya,Indo-Aryan,Oriya,23145,7959,0,31104
+pan,pan,"Panjabi, Eastern",Indo-Aryan,Gurmukhi,23145,7959,0,31104
+pesOPV,pes,Persian,Iranian,Arabic,23139,7951,0,31090
+polsz,pol,Polish,Slavic,Latin,0,7915,0,7915
+poronbv,por,Português,Romance,Latin,23147,7958,0,31105
+ronbtf,ron,Romanian,Romance,Latin,23145,7957,0,31102
+russyn,rus,Russian,Slavic,Latin,23214,7955,0,31169
+slk,slk,Slovak,Slavic,Latin,0,7955,0,7955
+spabll,spa,Spanish,Romance,Latin,23145,7958,6955,38058
+srp1868,srp,Serbian,Slavic,Latin,23153,7958,0,31111
+ukrfb,ukr,Ukrainian,Slavic,Latin,23127,7955,0,31082
+urd,urd,Urdu,Indo-Aryan,Latin,23145,7959,0,31104

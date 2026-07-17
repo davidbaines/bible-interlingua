@@ -1,0 +1,117 @@
+# Curated ISO 639-3 -> language family map for diversity bucketing.
+# Granularity is deliberately uneven: Bantu and Indo-Aryan are split out of
+# their phyla because the holdout buckets in spec.md name them; other
+# Indo-European and Niger-Congo languages keep the phylum label.
+# Advisory data, hand-curated 2026-07-05; extend as new languages enter
+# selections. Codes absent here fall back to script-based bucketing.
+languageCode,family
+arb,Afro-Asiatic
+asm,Indo-Aryan
+azb,Turkic
+bba,Niger-Congo
+bel,Indo-European
+ben,Indo-Aryan
+beo,Trans-New Guinea
+bod,Sino-Tibetan
+bqc,Mande
+cac,Mayan
+ceb,Austronesian
+cek,Sino-Tibetan
+ces,Indo-European
+chk,Austronesian
+ckb,Indo-European
+cmn,Sino-Tibetan
+cth,Sino-Tibetan
+cuk,Chibchan
+dan,Indo-European
+deu,Indo-European
+eng,Indo-European
+epo,Constructed
+ewe,Niger-Congo
+fin,Uralic
+fra,Indo-European
+gaz,Afro-Asiatic
+grc,Indo-European
+gub,Tupian
+guj,Indo-Aryan
+gun,Tupian
+hat,Creole
+hau,Afro-Asiatic
+haw,Austronesian
+hbo,Afro-Asiatic
+heb,Afro-Asiatic
+hin,Indo-Aryan
+hlt,Sino-Tibetan
+hmo,Austronesian
+hrv,Indo-European
+hui,Trans-New Guinea
+ibo,Niger-Congo
+ilo,Austronesian
+ind,Austronesian
+ita,Indo-European
+kan,Dravidian
+kbq,Trans-New Guinea
+kij,Austronesian
+kik,Bantu
+kne,Austronesian
+kor,Koreanic
+kos,Austronesian
+kpg,Austronesian
+ksd,Austronesian
+lat,Indo-European
+lin,Bantu
+lug,Bantu
+luo,Nilotic
+mal,Dravidian
+mar,Indo-Aryan
+mdy,Afro-Asiatic
+meu,Austronesian
+mps,Trans-New Guinea
+msy,Ramu-Lower Sepik
+mya,Sino-Tibetan
+nch,Uto-Aztecan
+nde,Bantu
+nhe,Uto-Aztecan
+nhw,Uto-Aztecan
+nld,Indo-European
+npi,Indo-Aryan
+nya,Bantu
+ory,Indo-Aryan
+pan,Indo-Aryan
+pes,Indo-European
+pol,Indo-European
+pon,Austronesian
+por,Indo-European
+qub,Quechuan
+rmc,Indo-Aryan
+ron,Indo-European
+rop,Creole
+rug,Austronesian
+rus,Indo-European
+sna,Bantu
+som,Afro-Asiatic
+spa,Indo-European
+srp,Indo-European
+sus,Mande
+suz,Sino-Tibetan
+swe,Indo-European
+swh,Bantu
+tam,Dravidian
+tbz,Niger-Congo
+tcz,Sino-Tibetan
+tdx,Austronesian
+tel,Dravidian
+tgl,Austronesian
+tha,Kra-Dai
+ton,Austronesian
+tpi,Creole
+tur,Turkic
+twi,Niger-Congo
+uig,Turkic
+ukr,Indo-European
+urd,Indo-Aryan
+vie,Austroasiatic
+wol,Niger-Congo
+yal,Mande
+yap,Austronesian
+yor,Niger-Congo

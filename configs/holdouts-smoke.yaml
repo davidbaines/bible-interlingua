@@ -1,0 +1,7 @@
+# Smoke holdouts: one small book so the tiny end-to-end run scores something
+# real without generating a whole testament. Jonah (48 verses) is present in
+# both the LXX Greek source and English.
+holdouts:
+  engbsb: [JON]
+valid_size: 500
+seed: 13

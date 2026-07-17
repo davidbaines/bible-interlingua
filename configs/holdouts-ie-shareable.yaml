@@ -1,0 +1,12 @@
+# Holdouts for the publishable single-family run. Same design as
+# configs/holdouts-ie.yaml (whole OT withheld from a Germanic and an Indo-Aryan
+# language), but every edition here carries a licence that permits sharing a
+# derived model, so a model trained on this selection can be published
+# (spec.md, "Publishing"). German uses the Public Domain deutkw edition in
+# place of the by-nc-nd deuelbbk.
+holdouts:
+  engbsb: [OT]      # English,  Public Domain
+  deutkw: [OT]      # German,   Public Domain
+  hin2017: [OT]     # Hindi,    by-sa
+valid_size: 5000
+seed: 13
