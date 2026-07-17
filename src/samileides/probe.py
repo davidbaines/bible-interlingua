@@ -121,12 +121,13 @@ class ProbeStopper(TrainerCallback):
     STOP_KEY = "chrF3_macro"  # column (in the held-out, unprefixed set) to stop on
 
     def __init__(self, probe_sets: dict[str, pd.DataFrame], sp, cfg: ProbeConfig,
-                 output: Path, max_length: int):
+                 output: Path, max_length: int, src_max_length: int | None = None):
         self.probe_sets = probe_sets
         self.sp = sp
         self.cfg = cfg
         self.output = Path(output)
         self.max_length = max_length
+        self.src_max_length = src_max_length  # multi-source: longer source cap
         self.csv_path = self.output / PROBE_CSV
         self.history: list[tuple[int, float]] = []
         self.best: tuple[int, float] | None = None  # (step, held-out macro chrF3)
@@ -151,6 +152,7 @@ class ProbeStopper(TrainerCallback):
                 model, self.sp, device, probe[SRC_COLUMN].tolist(),
                 beam=1, length_penalty=1.0, max_length=self.max_length,
                 batch_size=self.cfg.batch_size,
+                src_max_length=self.src_max_length,
             )
         if was_training:
             model.train()

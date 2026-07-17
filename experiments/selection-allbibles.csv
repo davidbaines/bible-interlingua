@@ -1,0 +1,75 @@
+translationId,languageCode,languageNameInEnglish,branch,script,OTverses,NTverses,DCverses,totalVerses
+arb-vd,arb,Arabic,Afro-Asiatic,Arabic,23145,7959,0,31104
+asmfb,asm,Assamese,Indo-Aryan,Bengali,23137,7955,0,31092
+benobcv,ben,Bengali,Indo-Aryan,Latin,23144,7956,0,31100
+beo,beo,Beami,Trans-New Guinea,Latin,22134,7925,0,30059
+cebulb,ceb,Cebuano,Austronesian,Latin,23145,7958,0,31103
+cekak,cek,"Chin, Eastern Khumi",Sino-Tibetan,Latin,23127,7948,0,31075
+ces1613,ces,Czech,Indo-European,Latin,23214,7958,0,31172
+ckb,ckb,Central Kurdish,Indo-European,Arabic,23145,7958,0,31103
+cmn-cu89s,cmn,Chinese,Sino-Tibetan,CJK,23081,7940,0,31021
+cth,cth,"Chin, Thaiphum",Sino-Tibetan,Latin,23145,7959,0,31104
+dan1931,dan,Danish,Indo-European,Latin,23211,7957,0,31168
+deutkw,deu,"German, Standard",Indo-European,Latin,23206,7951,0,31157
+dwrl,dwr,Dawro,Afro-Asiatic,Latin,23009,7806,0,30815
+eng-web,eng,English,Indo-European,Latin,23145,7958,6955,38058
+epo,epo,Esperanto,Constructed,Latin,23145,7957,0,31102
+ewe,ewe,eʋegbe,Niger-Congo,Latin,23145,7958,0,31103
+frasbl,fra,French,Indo-European,Latin,23145,7958,6955,38058
+gax,gax,gujii,Afro-Asiatic,Latin,23133,7935,0,31068
+gaz,gaz,"Oromo, West Central",Afro-Asiatic,Latin,23145,7957,0,31102
+gmve,gmv,Gamo,Afro-Asiatic,Ethiopic,23063,7843,0,30906
+gofe,gof,Goofa,Afro-Asiatic,Ethiopic,23045,7932,0,30977
+guj2017,guj,Gujarati,Indo-Aryan,Gujarati,23145,7959,0,31104
+hatbsa,hat,Haitian,Creole,Latin,23145,7958,0,31103
+hausa,hau,Hausa,Afro-Asiatic,Latin,23145,7942,0,31087
+haw1868,haw,Hawaiian,Austronesian,Latin,23145,7957,0,31102
+heb,heb,Hebrew,Afro-Asiatic,Hebrew,23145,7957,0,31102
+hil,hil,Ilonggo,Austronesian,Latin,22451,7883,0,30334
+hin2017,hin,Hindi,Indo-Aryan,Devanagari,23145,7959,0,31104
+hltmcsb,hlt,"Chin, Matu",Sino-Tibetan,Latin,23145,7959,6565,37669
+hne,hne,Chhattisgarhi,Indo-Aryan,Devanagari,23145,7958,0,31103
+hrv,hrv,Croatian,Indo-European,Latin,23212,7957,4279,35448
+ibo,ibo,Igbo,Niger-Congo,Latin,23145,7958,0,31103
+iloulb,ilo,Ilocano,Austronesian,Latin,23144,7958,0,31102
+ita1927,ita,Italian,Indo-European,Latin,23145,7957,0,31102
+kanokcv,kan,Kannada,Dravidian,Latin,23138,7952,0,31090
+kbq,kbq,Kamano,Trans-New Guinea,Latin,23140,7952,0,31092
+kik,kik,Gikuyu,Bantu,Latin,23145,7956,0,31101
+kor,kor,Korean,Koreanic,Latin,23071,7920,0,30991
+kos,kos,Kosraean,Austronesian,Latin,22988,7958,0,30946
+latVUC,lat,Latin,Indo-European,Latin,23483,7951,4375,35809
+lin,lin,Lingála,Bantu,Latin,23212,7957,0,31169
+lug,lug,Luganda,Bantu,Latin,23145,7959,0,31104
+luo,luo,Dholuo,Nilotic,Latin,23145,7958,0,31103
+mal,mal,Malayalam,Dravidian,Malayalam,23144,7958,0,31102
+mar,mar,Marathi,Indo-Aryan,Devanagari,23143,7944,0,31087
+mkw,mkw,Kituba,Bantu,Latin,23213,7952,0,31165
+myajvb,mya,Burmese,Sino-Tibetan,Latin,23145,7957,0,31102
+nde,nde,Ndebele,Bantu,Latin,23145,7958,0,31103
+nld1939,nld,Dutch,Indo-European,Latin,22787,7956,4592,35335
+npiulb,npi,Nepali,Indo-Aryan,Latin,23145,7957,0,31102
+nya,nya,Chichewa,Bantu,Latin,23145,7959,0,31104
+ory,ory,Oriya,Indo-Aryan,Oriya,23145,7959,0,31104
+pan,pan,"Panjabi, Eastern",Indo-Aryan,Gurmukhi,23145,7959,0,31104
+pesOPV,pes,Persian,Indo-European,Arabic,23139,7951,0,31090
+poronbv,por,Português,Indo-European,Latin,23147,7958,0,31105
+ronbtf,ron,Romanian,Indo-European,Latin,23145,7957,0,31102
+russyn,rus,Russian,Indo-European,Latin,23214,7955,0,31169
+shr,shr,Shi,Bantu,Latin,23386,7957,4110,35453
+sna,sna,chiShona,Bantu,Latin,23145,7958,0,31103
+spablm,spa,Spanish,Indo-European,Latin,23145,7958,6955,38058
+srp1868,srp,Serbian,Indo-European,Latin,23153,7958,0,31111
+swhonen,swh,Swahili,Bantu,Latin,23145,7958,0,31103
+tam2017,tam,Tamil,Dravidian,Tamil,23145,7958,0,31103
+tczchongthu,tcz,"Chin, Thado",Sino-Tibetan,Latin,23099,7959,0,31058
+tdx,tdx,"Malagasy, Tandroy-Mahafaly",Austronesian,Latin,23137,7944,0,31081
+tel2017,tel,Telugu,Dravidian,Telugu,23129,7875,0,31004
+tglulb,tgl,Tagalog,Austronesian,Latin,23144,7959,0,31103
+ton,ton,Tongan,Austronesian,Latin,23145,7957,0,31102
+twi,twi,Twi,Niger-Congo,Latin,23142,7958,0,31100
+uigara,uig,Uyghur,Turkic,Latin,22992,7833,0,30825
+ukr1871,ukr,Ukrainian,Indo-European,Latin,23127,7955,0,31082
+urd,urd,Urdu,Indo-Aryan,Latin,23145,7959,0,31104
+vie1934,vie,Vietnamese,Austroasiatic,Latin,23145,7957,0,31102
+yor,yor,Yorùbá,Niger-Congo,Latin,23145,7942,0,31087

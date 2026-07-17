@@ -1,0 +1,64 @@
+# Phase-1 headline: multi-source fusion at K=4 (plan.md run #1). Same
+# transformer-big scale, selection and evaluation as ebible-mt's
+# ie_big_shareable (chrF3 47.01/37.03/43.82 eng/deutkw/hin), but each source
+# line concatenates up to 4 renderings of the verse (Greek first, k_min=1
+# source-dropout) instead of Greek alone — putting the verse's content on the
+# source side from many angles. Dutch nld1939's whole OT is additionally held
+# out as the attach upper-bound row. Publishable (all sources PD/by-sa).
+name: ms4_ie_shareable
+phase: multi-source
+
+data:
+  selection: experiments/selection-ie-shareable.csv
+  holdouts: configs/holdouts-interlingua.yaml
+  source: greek
+  pairing: multi-source
+  k: 4
+  k_min: 1
+  max_len: 192
+  max_src_len: 384
+  max_ratio: 0            # ratio filter meaningless for concatenated sources
+
+tokenizer:
+  type: bpe
+  vocab_size: 32000
+
+model:                    # transformer-big (~210M)
+  arch: marian
+  encoder_layers: 6
+  decoder_layers: 6
+  d_model: 1024
+  encoder_attention_heads: 16
+  decoder_attention_heads: 16
+  encoder_ffn_dim: 4096
+  decoder_ffn_dim: 4096
+  dropout: 0.1
+  label_smoothing: 0.1
+
+training:
+  optimizer: adamw
+  lr: 5.0e-4
+  warmup_steps: 4000
+  lr_scheduler: cosine          # decays to ~0 at max_steps (HF passthrough)
+  per_device_batch_size: 64     # H100 40 GB at max_src_len 384; effective 256
+  gradient_accumulation: 4      #   seqs, matching the ie_big recipe
+  max_grad_norm: 1.0
+  bf16: true
+  max_steps: 100000             # ceiling; probe early-stopping usually ends sooner
+  eval_every_steps: 2000
+  seed: 13
+
+inference:
+  beam: 5
+  length_penalty: 1.0
+  max_length: 192
+
+probe:                          # held-out chrF3 curve + early stop + best checkpoint
+  every_steps: 1000
+  verses_per_language: 250
+  min_gain: 1.0
+  patience_steps: 20000
+  batch_size: 64
+  seed: 13
+
+oversample_holdouts: 1

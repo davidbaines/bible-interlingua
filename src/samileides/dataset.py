@@ -26,25 +26,28 @@ class PairDataset(Dataset):
     EOS) and ``labels`` (target + EOS). Padding is deferred to the collator.
     """
 
-    def __init__(self, pairs, sp, max_len: int = 192):
+    def __init__(self, pairs, sp, max_len: int = 192, max_src_len: int | None = None):
         self.src = pairs[SRC_COLUMN].tolist()
         self.tgt = pairs[TGT_COLUMN].tolist()
         self.sp = sp
         self.max_len = max_len
+        # Multi-source concatenations need a larger source-side cap; the
+        # target side keeps max_len (plan.md, "Multi-source format").
+        self.max_src_len = max_src_len or max_len
         self.eos = sp.eos_id()
 
     def __len__(self) -> int:
         return len(self.src)
 
-    def _encode(self, text: str) -> list[int]:
-        ids = self.sp.encode(text, out_type=int)[: self.max_len - 1]
+    def _encode(self, text: str, cap: int) -> list[int]:
+        ids = self.sp.encode(text, out_type=int)[: cap - 1]
         ids.append(self.eos)
         return ids
 
     def __getitem__(self, idx: int) -> dict[str, list[int]]:
         return {
-            "input_ids": self._encode(self.src[idx]),
-            "labels": self._encode(self.tgt[idx]),
+            "input_ids": self._encode(self.src[idx], self.max_src_len),
+            "labels": self._encode(self.tgt[idx], self.max_len),
         }
 
 

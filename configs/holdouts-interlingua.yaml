@@ -1,0 +1,12 @@
+# Holdouts for the phase-1 multi-source runs (plan.md, "Experiments").
+# The three standard whole-OT holdouts (comparability with ie_big_shareable)
+# plus Dutch nld1939 — whose whole OT is withheld so the phase-1 runs provide
+# the attach upper bound (nld trained NT-only from birth) for free. Costs ~3%
+# of training pairs vs ie_big_shareable; stated in every results doc.
+holdouts:
+  engbsb: [OT]      # English,  Public Domain
+  deutkw: [OT]      # German,   Public Domain
+  hin2017: [OT]     # Hindi,    by-sa
+  nld1939: [OT]     # Dutch,    attach language (upper bound row)
+valid_size: 5000
+seed: 13

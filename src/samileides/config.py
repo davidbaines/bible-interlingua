@@ -29,8 +29,12 @@ class DataConfig:
     source: str = "greek"
     max_len: int = 192
     max_ratio: float = 2.0         # 0 disables the ratio filter (vref sources)
-    pairing: str = "one-to-many"   # or "many-to-many"
-    k: int = 4                     # many-to-many: sources sampled per target verse
+    pairing: str = "one-to-many"   # or "many-to-many" / "multi-source"
+    k: int = 4                     # m2m/ms: source renderings per target verse
+    k_min: int = 1                 # multi-source: sampling floor (source-dropout)
+    # Multi-source concatenations exceed the target cap; when set, sources are
+    # length-filtered/encoded to this and targets keep max_len.
+    max_src_len: int | None = None
     pivot: str = "spa"             # NLLB eval: source language for held-out generation
     vref_encoding: str = "struct"  # source == "vref": struct | vtok | text
     # Repo-relative path to a committed manifest checksum; when set, training
@@ -108,6 +112,28 @@ class ProbeConfig:
 
 
 @dataclass
+class AttachConfig:
+    """Attaching a new language to a frozen base run (plan.md, "Anchors & attach").
+
+    ``mode`` graft: add one target-tag embedding row + decoder adapters to the
+    frozen base and train only those on the new language's NT. ``mode``
+    anchor_decoder: initialise a decoder from the base and train it to generate
+    from frozen per-verse anchor vectors. Early stopping always runs on the NT
+    dev split — the held-out OT is scored exactly once, at the end.
+    """
+
+    mode: str                      # "graft" | "anchor_decoder"
+    base_run: str                  # repo-relative path to the frozen base run dir
+    translation: str               # the new language's translationId (e.g. nld1939)
+    nt_dev_size: int = 500         # NT verses held back as the early-stop dev set
+    adapter_dim: int = 64          # graft: Houlsby adapter bottleneck size
+    anchor_file: str | None = None # anchor_decoder: path to anchors .npz
+    lr: float = 1.0e-4
+    max_steps: int = 20000
+    dropout: float = 0.3
+
+
+@dataclass
 class ExperimentConfig:
     name: str
     phase: str
@@ -117,6 +143,7 @@ class ExperimentConfig:
     training: TrainingConfig
     inference: InferenceConfig
     probe: ProbeConfig | None = None
+    attach: AttachConfig | None = None
     oversample_holdouts: int = 1
     path: Path | None = None
 
@@ -135,6 +162,10 @@ class ExperimentConfig:
             probe=(
                 ProbeConfig(**_only_known(ProbeConfig, raw["probe"]))
                 if "probe" in raw else None
+            ),
+            attach=(
+                AttachConfig(**_only_known(AttachConfig, raw["attach"]))
+                if "attach" in raw else None
             ),
             oversample_holdouts=int(raw.get("oversample_holdouts", 1)),
             path=path,

@@ -54,15 +54,22 @@ def generate_texts(
     length_penalty: float,
     max_length: int,
     batch_size: int = 32,
+    src_max_length: int | None = None,
 ) -> tuple[list[str], int]:
-    """Beam-decode tagged source strings. Returns (hypotheses, truncations)."""
+    """Beam-decode tagged source strings. Returns (hypotheses, truncations).
+
+    ``max_length`` caps generation; ``src_max_length`` (when set) caps the
+    source encoding separately — multi-source inputs are much longer than any
+    generated verse.
+    """
     pad, eos, bos = sp.pad_id(), sp.eos_id(), sp.bos_id()
     special = {pad, eos, bos}
     hyps: list[str] = []
     truncated = 0
+    src_cap = src_max_length or max_length
     for start in range(0, len(sources), batch_size):
         chunk = sources[start : start + batch_size]
-        enc = [sp.encode(s, out_type=int)[: max_length - 1] + [eos] for s in chunk]
+        enc = [sp.encode(s, out_type=int)[: src_cap - 1] + [eos] for s in chunk]
         width = max(len(e) for e in enc)
         input_ids = torch.tensor(
             [e + [pad] * (width - len(e)) for e in enc], device=device
@@ -92,6 +99,20 @@ def generate_holdouts(run_dir: Path, out_dir: Path, args) -> pd.DataFrame:
     data = prepare(cfg)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    if cfg.data.pairing == "multi-source":
+        # Deterministic multi-source inputs for the held-out books: Greek +
+        # top-ranked non-held-out renderings, exactly as during training eval.
+        from .multisource import (
+            inference_source_ranking, present_by_vref, to_ms_sources,
+        )
+
+        present = present_by_vref(data.splits.train, data.splits.valid)
+        ranking = inference_source_ranking(data.selection)
+        data.test_pairs = to_ms_sources(
+            data.test_pairs, data.verses, data.source, data.language_of,
+            present, ranking, k=cfg.data.k,
+        )
+
     rows = []
     for translation, books in data.holdouts.items():
         sub = data.test_pairs[data.test_pairs["translation"] == translation]
@@ -109,6 +130,7 @@ def generate_holdouts(run_dir: Path, out_dir: Path, args) -> pd.DataFrame:
                 model, sp, device, srcs,
                 beam=beam, length_penalty=cfg.inference.length_penalty,
                 max_length=max_length, batch_size=args.batch_size,
+                src_max_length=cfg.data.max_src_len,
             )
             refs = book_pairs[TGT_COLUMN].tolist()
             vrefs = book_pairs[VREF_COLUMN].tolist()
@@ -161,11 +183,20 @@ def score_book(*, translation, book, vrefs, hyps, data, truncated):
         & (data.test_pairs[VREF_COLUMN].isin(vrefs))
     ].set_index(VREF_COLUMN)
     refs = [sub.at[v, TGT_COLUMN] for v in vrefs]
-    src_plain = [
-        (sub.at[v, SRC_COLUMN].split(" ", 1)[1] if " " in sub.at[v, SRC_COLUMN]
-         else sub.at[v, SRC_COLUMN])
-        for v in vrefs
-    ]
+    sample_src = sub.at[vrefs[0], SRC_COLUMN] if len(vrefs) else ""
+    if " <1" in sample_src:
+        # m2m/multi-source lines carry language-tagged renderings; copying the
+        # whole line would leak other-language text into the baseline. Keep
+        # the baseline as plain Greek-copy, as in the one-to-many series.
+        from .preprocess import normalise
+
+        src_plain = [normalise(data.source.get(v, "")) for v in vrefs]
+    else:
+        src_plain = [
+            (sub.at[v, SRC_COLUMN].split(" ", 1)[1] if " " in sub.at[v, SRC_COLUMN]
+             else sub.at[v, SRC_COLUMN])
+            for v in vrefs
+        ]
     metrics = score(hyps, refs)
     copy = trivial_baselines(src_plain, refs)["source-copy"]
     candidates = other_language_candidates(vrefs, data.verses, translation, data.language_of)
@@ -214,8 +245,10 @@ def generate_template(run_dir: Path, out_dir: Path, args) -> None:
     book_mask = source.index.map(book_of) == args.book
     vrefs = [v for v, keep in zip(source.index, book_mask) if keep and source[v]]
     tag = target_tag(args.lang)
-    if cfg.data.pairing == "many-to-many":
-        from .manytomany import GREEK_CODE
+    if cfg.data.pairing in ("many-to-many", "multi-source"):
+        # Single Greek rendering; in-distribution for multi-source thanks to
+        # the k_min=1 source-dropout during training.
+        from .multisource import GREEK_CODE
         from .preprocess import source_tag
 
         stag = source_tag(GREEK_CODE)
@@ -227,6 +260,7 @@ def generate_template(run_dir: Path, out_dir: Path, args) -> None:
         model, sp, device, srcs, beam=beam,
         length_penalty=cfg.inference.length_penalty,
         max_length=max_length, batch_size=args.batch_size,
+        src_max_length=cfg.data.max_src_len,
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     _write_book(out_dir, f"template-{args.lang}", args.book, vrefs, hyps)

@@ -1,0 +1,61 @@
+# Multi-source smoke (plan.md, "Verification"): the exact multi-source
+# pipeline — sampler, k_min dropout, asymmetric length caps, deterministic
+# probe/eval sources, generation — on the tiny smoke selection, sized for the
+# local 3090. Finishes in minutes; gates any H100 time on the new code path.
+name: smoke_ms
+phase: multi-source
+
+data:
+  selection: experiments/selection-smoke.csv
+  holdouts: configs/holdouts-smoke.yaml
+  source: greek
+  pairing: multi-source
+  k: 3
+  k_min: 1
+  max_len: 128
+  max_src_len: 256
+  max_ratio: 0
+
+tokenizer:
+  type: bpe
+  vocab_size: 4000          # smoke corpus is too small for 32k pieces
+
+model:                      # deliberately tiny; NOT transformer-big
+  arch: marian
+  encoder_layers: 2
+  decoder_layers: 2
+  d_model: 256
+  encoder_attention_heads: 4
+  decoder_attention_heads: 4
+  encoder_ffn_dim: 512
+  decoder_ffn_dim: 512
+  dropout: 0.1
+  label_smoothing: 0.1
+
+training:
+  optimizer: adamw
+  lr: 5.0e-4
+  warmup_steps: 100
+  lr_scheduler: cosine
+  per_device_batch_size: 32
+  gradient_accumulation: 1
+  max_grad_norm: 1.0
+  bf16: true
+  max_steps: 400
+  eval_every_steps: 100
+  seed: 13
+
+inference:
+  beam: 5
+  length_penalty: 1.0
+  max_length: 128
+
+probe:
+  every_steps: 100
+  verses_per_language: 24    # Jonah has ~48 verses
+  min_gain: 0.1
+  patience_steps: 400        # never triggers within 400 steps; exercises the path
+  batch_size: 16
+  seed: 13
+
+oversample_holdouts: 1

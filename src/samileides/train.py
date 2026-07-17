@@ -265,6 +265,31 @@ def run(args) -> None:
         )
         print(f"  many-to-many (K={cfg.data.k}): {len(data.train_pairs)} target verses "
               f"-> {len(train_source_pairs)} training pairs")
+    elif cfg.data.pairing == "multi-source":
+        from .multisource import (
+            build_ms_pairs, inference_source_ranking, present_by_vref, to_ms_sources,
+        )
+
+        train_source_pairs = build_ms_pairs(
+            data.splits.train, data.splits.valid, data.verses, data.source,
+            data.language_of, k=cfg.data.k, k_min=cfg.data.k_min,
+            seed=cfg.training.seed,
+        )
+        # Valid/test (and thus the probe sets built from them) get
+        # deterministic multi-source inputs so eval loss and probe generation
+        # match the training format.
+        present = present_by_vref(data.splits.train, data.splits.valid)
+        ranking = inference_source_ranking(data.selection)
+        data.valid_pairs = to_ms_sources(
+            data.valid_pairs, data.verses, data.source, data.language_of,
+            present, ranking, k=cfg.data.k,
+        )
+        data.test_pairs = to_ms_sources(
+            data.test_pairs, data.verses, data.source, data.language_of,
+            present, ranking, k=cfg.data.k,
+        )
+        print(f"  multi-source (K={cfg.data.k}, k_min={cfg.data.k_min}): "
+              f"{len(train_source_pairs)} training pairs")
     else:
         train_source_pairs = data.train_pairs
     print(
@@ -285,10 +310,12 @@ def run(args) -> None:
     from .preprocess import length_filter
 
     train_pairs, train_stats = length_filter(
-        train_source_pairs, encode, cfg.data.max_len, cfg.data.max_ratio
+        train_source_pairs, encode, cfg.data.max_len, cfg.data.max_ratio,
+        max_src_len=cfg.data.max_src_len,
     )
     valid_pairs, _ = length_filter(
-        data.valid_pairs, encode, cfg.data.max_len, cfg.data.max_ratio
+        data.valid_pairs, encode, cfg.data.max_len, cfg.data.max_ratio,
+        max_src_len=cfg.data.max_src_len,
     )
     print(f"  length filter (train): {train_stats}")
 
@@ -297,11 +324,12 @@ def run(args) -> None:
         valid_pairs = train_pairs  # overfit: eval on the same pairs
         print(f"  OVERFIT mode: {len(train_pairs)} pairs")
 
-    train_ds = PairDataset(train_pairs, sp, cfg.data.max_len)
-    valid_ds = PairDataset(valid_pairs, sp, cfg.data.max_len)
+    train_ds = PairDataset(train_pairs, sp, cfg.data.max_len, cfg.data.max_src_len)
+    valid_ds = PairDataset(valid_pairs, sp, cfg.data.max_len, cfg.data.max_src_len)
     collator = Collator(pad_id=sp.pad_id())
 
-    model = build_model(cfg.model, sp, max_position_embeddings=cfg.data.max_len + 4)
+    max_pos = max(cfg.data.max_src_len or 0, cfg.data.max_len) + 4
+    model = build_model(cfg.model, sp, max_position_embeddings=max_pos)
     n_params = sum(p.numel() for p in model.parameters())
     print(f"  model: {cfg.model.arch} {n_params/1e6:.1f}M params")
 
@@ -333,7 +361,8 @@ def run(args) -> None:
             msg += f"; seen {len(seen)} verses / {seen['language'].nunique()} langs"
         stop_mode = "early-stop ON" if cfg.probe.early_stop else "run-to-max_steps"
         print(f"{msg}; every {cfg.probe.every_steps} steps; {stop_mode}")
-        stopper = ProbeStopper(probe_sets, sp, cfg.probe, output, cfg.inference.max_length)
+        stopper = ProbeStopper(probe_sets, sp, cfg.probe, output,
+                               cfg.inference.max_length, cfg.data.max_src_len)
         callbacks.append(stopper)
     elif not args.overfit:
         callbacks.append(EarlyStoppingCallback(cfg.training.early_stopping_patience))

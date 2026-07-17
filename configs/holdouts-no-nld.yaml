@@ -1,0 +1,10 @@
+# Holdouts for the attach base run (plan.md run #3): the standard three
+# whole-OT holdouts only. Dutch is absent from the selection entirely
+# (experiments/selection-ie-shareable-no-nld.csv) — the attach experiments
+# bring it back post-hoc from its NT alone.
+holdouts:
+  engbsb: [OT]      # English,  Public Domain
+  deutkw: [OT]      # German,   Public Domain
+  hin2017: [OT]     # Hindi,    by-sa
+valid_size: 5000
+seed: 13
