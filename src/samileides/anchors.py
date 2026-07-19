@@ -160,6 +160,14 @@ def retrieval_sanity(run_dir: Path, anchors_path: Path, n: int = 500,
     texts = [f"{target_tag(GREEK_CODE)} {source_tag(GREEK_CODE)} {normalise(data.source[v])}"
              for v in pick]
     q = pool_encoder_states(model, sp, device, texts)
+    # The anchors are per-language mean-centred; centre the query by Greek's
+    # stored mean so the comparison is like-for-like (else a constant offset
+    # dominates cosine and depresses the hit rate).
+    means_path = anchors_path.parent / "language-means.npz"
+    if means_path.exists():
+        means = np.load(means_path)
+        if GREEK_CODE in means.files:
+            q = q - means[GREEK_CODE].astype(np.float32)
 
     A = anchors / (np.linalg.norm(anchors, axis=1, keepdims=True) + 1e-8)
     Q = q / (np.linalg.norm(q, axis=1, keepdims=True) + 1e-8)
