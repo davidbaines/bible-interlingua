@@ -90,8 +90,8 @@ def test_anchor_collator_shapes_single_slot_memory():
         {"anchor": np.zeros(8, dtype=np.float32), "labels": [7, 2]},
     ]
     out = coll(batch)
-    mem = out["encoder_outputs"].last_hidden_state
-    assert mem.shape == (2, 1, 8)               # single-slot memory
+    mem = out["encoder_memory"]
+    assert mem.shape == (2, 1, 8)               # single-slot memory (plain tensor)
     assert out["attention_mask"].shape == (2, 1)
     assert out["labels"].shape == (2, 3)
     assert out["decoder_input_ids"].shape == (2, 3)

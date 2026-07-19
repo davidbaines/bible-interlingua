@@ -174,9 +174,11 @@ class AnchorPairDataset(Dataset):
 class AnchorCollator:
     """Pad targets and stack anchors into a single-slot encoder memory.
 
-    Emits ``encoder_outputs`` (a BaseModelOutput with a [B, 1, d] memory) so
-    ``MarianMTModel.forward``/``.generate`` skip the encoder entirely and
-    cross-attend to the frozen anchor. Also builds ``decoder_input_ids`` the
+    Emits the memory as a plain ``encoder_memory`` tensor ([B, 1, d]) — NOT a
+    BaseModelOutput, which the DataLoader's pin_memory and the Trainer's
+    device-move both choke on. ``AnchorTrainer`` (train_attach.py) wraps it into
+    ``encoder_outputs`` at compute-loss time so the decoder cross-attends to the
+    frozen anchor and the encoder is skipped. Builds ``decoder_input_ids`` the
     way ``dataset.Collator`` does (the label-smoother pops labels).
     """
 
@@ -185,8 +187,6 @@ class AnchorCollator:
         self.decoder_start_id = pad_id if decoder_start_id is None else decoder_start_id
 
     def __call__(self, batch):
-        from transformers.modeling_outputs import BaseModelOutput
-
         tgt_max = max(len(b["labels"]) for b in batch)
         labels, dec_in, anchors = [], [], []
         for b in batch:
@@ -197,7 +197,7 @@ class AnchorCollator:
             anchors.append(b["anchor"])
         memory = torch.tensor(np.stack(anchors), dtype=torch.float32).unsqueeze(1)
         return {
-            "encoder_outputs": BaseModelOutput(last_hidden_state=memory),
+            "encoder_memory": memory,
             "attention_mask": torch.ones(len(batch), 1, dtype=torch.long),
             "labels": torch.tensor(labels, dtype=torch.long),
             "decoder_input_ids": torch.tensor(dec_in, dtype=torch.long),

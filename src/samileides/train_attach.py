@@ -29,6 +29,24 @@ from .multisource import GREEK_CODE, inference_source_ranking, present_by_vref, 
 from .preprocess import SRC_COLUMN, TGT_COLUMN, normalise
 
 
+def _anchor_trainer_cls():
+    """A Seq2SeqTrainer that rebuilds encoder_outputs from the plain memory
+    tensor the AnchorCollator emits (a BaseModelOutput can't survive the
+    DataLoader pin_memory / device-move path)."""
+    from transformers import Seq2SeqTrainer
+    from transformers.modeling_outputs import BaseModelOutput
+
+    class AnchorTrainer(Seq2SeqTrainer):
+        def compute_loss(self, model, inputs, return_outputs=False, **kw):
+            inputs = dict(inputs)
+            mem = inputs.pop("encoder_memory")
+            inputs["encoder_outputs"] = BaseModelOutput(last_hidden_state=mem)
+            out = model(**inputs)
+            return (out.loss, out) if return_outputs else out.loss
+
+    return AnchorTrainer
+
+
 def _attach_language_frames(base_cfg, translation, nt_dev_size, seed):
     """Load the attach language and split it into NT train / NT dev / OT test.
 
@@ -103,6 +121,9 @@ def run(args) -> None:
         logging_steps=max(1, max_steps // 20), seed=cfg.training.seed,
         report_to=["clearml"] if args.clearml else [], remove_unused_columns=False,
         dataloader_num_workers=args.num_workers, predict_with_generate=False,
+        # Anchor mode carries a float memory tensor the default pinning path
+        # mishandled historically; keep it off for both modes (tiny runs).
+        dataloader_pin_memory=False,
     )
 
     if at.mode == "graft":
@@ -142,7 +163,8 @@ def run(args) -> None:
         trainable = [p for p in model.parameters() if p.requires_grad]
         print(f"  anchor decoder: {sum(p.numel() for p in trainable)/1e6:.2f}M trainable")
 
-    trainer = Seq2SeqTrainer(
+    trainer_cls = _anchor_trainer_cls() if at.mode == "anchor_decoder" else Seq2SeqTrainer
+    trainer = trainer_cls(
         model=model, args=targs, train_dataset=train_ds, eval_dataset=dev_ds,
         data_collator=collator,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
