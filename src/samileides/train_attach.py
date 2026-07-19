@@ -212,6 +212,7 @@ def _generate_and_score(cfg, base_cfg, at, model, sp, device, data, col, ot, out
         rows.append({"book": bk, "verses": len(vrefs), **m,
                      "copy_chrF3": copy["chrF3"], "other_chrF3": other, "other_lang": other_lang})
         all_hyps += hyps; all_refs += refs
+        _write_drafts(output / "generated", at.translation, bk, vrefs, hyps, refs)
         print(f"  {bk}: chrF3={m['chrF3']} (copy={copy['chrF3']}, other={other} [{other_lang}])")
 
     table = pd.DataFrame(rows)
@@ -224,6 +225,17 @@ def _generate_and_score(cfg, base_cfg, at, model, sp, device, data, col, ot, out
     w = table["verses"]
     print(f"  whole-OT chrF3 (verse-weighted): {(table['chrF3']*w).sum()/w.sum():.2f}")
     print(f"  coverage: {cov}")
+
+
+def _write_drafts(gen_dir, translation, book, vrefs, hyps, refs):
+    """Persist drafts + a side-by-side sheet so runs are inspectable."""
+    gen_dir.mkdir(parents=True, exist_ok=True)
+    (gen_dir / f"{translation}-{book}.txt").write_text(
+        "\n".join(f"{v}\t{h}" for v, h in zip(vrefs, hyps)), encoding="utf-8")
+    lines = [f"| {v} | {h} | {r} |" for v, h, r in zip(vrefs[:15], hyps[:15], refs[:15])]
+    (gen_dir / f"sheet-{translation}-{book}.md").write_text(
+        "| vref | draft | reference |\n|---|---|---|\n" + "\n".join(lines),
+        encoding="utf-8")
 
 
 @torch.no_grad()
