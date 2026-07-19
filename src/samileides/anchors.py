@@ -49,10 +49,13 @@ def pool_encoder_states(model, sp, device, texts: list[str], batch_size: int = 1
     """
     device = torch.device(device) if isinstance(device, str) else device
     pad, eos = sp.pad_id(), sp.eos_id()
+    # Cap encodings to the model's position budget; an over-long verse would
+    # otherwise index past the position embeddings and trigger a CUDA assert.
+    cap = int(model.config.max_position_embeddings) - 1
     out = []
     for start in range(0, len(texts), batch_size):
         chunk = texts[start : start + batch_size]
-        enc = [sp.encode(t, out_type=int) + [eos] for t in chunk]
+        enc = [sp.encode(t, out_type=int)[: cap - 1] + [eos] for t in chunk]
         width = max(len(e) for e in enc)
         ids = torch.tensor([e + [pad] * (width - len(e)) for e in enc], device=device)
         mask = torch.tensor(
