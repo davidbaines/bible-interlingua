@@ -103,6 +103,16 @@ def freeze_for_graft(model, new_tag_id: int, adapters: list[nn.Module]):
             p.requires_grad_(True)
 
 
+def drop_target_tag(src: str) -> str:
+    """Remove the leading ``<2xx>`` target tag; keep the rest verbatim.
+
+    The graft path re-supplies the target tag as a fresh embedding id, so the
+    (unknown-to-SentencePiece) ``<2new>`` prefix is stripped before encoding.
+    """
+    parts = src.split(" ", 1)
+    return parts[1] if len(parts) == 2 and parts[0].startswith("<2") else src
+
+
 class TagPrependDataset(Dataset):
     """Graft dataset: manually prepend the new tag id to the (un-tagged) source.
 
@@ -124,13 +134,8 @@ class TagPrependDataset(Dataset):
     def __len__(self):
         return len(self.src)
 
-    def _drop_target_tag(self, src: str) -> str:
-        # Remove the leading "<2xx> " target tag; keep the rest verbatim.
-        parts = src.split(" ", 1)
-        return parts[1] if len(parts) == 2 and parts[0].startswith("<2") else src
-
     def __getitem__(self, idx):
-        body = self._drop_target_tag(self.src[idx])
+        body = drop_target_tag(self.src[idx])
         ids = [self.new_tag_id] + self.sp.encode(body, out_type=int)[: self.max_src_len - 2]
         ids.append(self.eos)
         labels = self.sp.encode(self.tgt[idx], out_type=int)[: self.max_len - 1]

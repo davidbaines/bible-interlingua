@@ -47,6 +47,7 @@ def pool_encoder_states(model, sp, device, texts: list[str], batch_size: int = 1
     tokens are excluded from the mean so the anchor reflects verse content, not
     the language markers. Returns an [n, d_model] fp32 array.
     """
+    device = torch.device(device) if isinstance(device, str) else device
     pad, eos = sp.pad_id(), sp.eos_id()
     out = []
     for start in range(0, len(texts), batch_size):

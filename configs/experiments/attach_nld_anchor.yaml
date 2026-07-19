@@ -1,0 +1,32 @@
+# Headline attach (plan.md run #6): the frozen verse-anchor auto-decoder.
+# Decoder initialised from base_no_nld_ms, trained on Dutch NT (anchor -> text)
+# only, then decodes the ~21k held-out OT anchors. Should sit above the graft
+# lower bound and approach the ms-run's Dutch upper bound (41.17). Base run,
+# K and anchor file are set once the phase-1 winner is confirmed.
+name: attach_nld_anchor
+phase: attach
+
+data:
+  selection: experiments/selection-ie-shareable-no-nld.csv
+  holdouts: configs/holdouts-no-nld.yaml
+
+model:
+  arch: marian
+
+training:
+  seed: 13
+
+inference:
+  beam: 5
+  length_penalty: 1.0
+  max_length: 192
+
+attach:
+  mode: anchor_decoder
+  base_run: checkpoints/base_no_nld_ms4
+  translation: nld1939
+  anchor_file: checkpoints/base_no_nld_ms4/anchors/anchors-centered.npy
+  nt_dev_size: 500
+  lr: 1.0e-4
+  max_steps: 20000
+  dropout: 0.3
