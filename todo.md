@@ -51,13 +51,18 @@ the Current status block current and tick tasks `[x]` as they complete.
 - [x] `experiments/ms-results.md` (ms4 rows; ms8 rows pending).
 
 ### 5. Phase 2 — anchors + attach
-- [x] `anchors.py` + retrieval sanity gate.
+- [x] `anchors.py` + retrieval sanity — 85% top-1 (below 95% gate): the
+      single-vector bottleneck (see `experiments/anchor-retrieval.md`).
 - [x] `attach.py` (graft + anchor decoder) + `coverage.py` + unit tests.
-- [ ] `train_attach.py` entry point + `smoke_attach` on the base checkpoint.
-- [ ] Runs: `base_no_nld_ms` → `anchors_no_nld` → `attach_nld_graft` →
-      `attach_nld_anchor`.
-- [ ] `experiments/attach-nld-results.md` with the bounds ladder + coverage
-      analysis (never early-stop on OT).
+- [x] `train_attach.py`; both train + generate paths smoked on the real base.
+- [x] `base_no_nld_ms4` complete (gate passed: still beats baseline w/o Dutch);
+      anchors extracted (37.7k verses, 21.4 donors).
+- [~] Attach runs on the K=4 base: `attach_nld_graft` running; then
+      `attach_nld_anchor`. (K=8 base still training; repeat there only if K=8
+      proves materially better in phase 1.)
+- [ ] `experiments/attach-nld-results.md` — bounds ladder (best-other 22.74 <
+      graft < anchor ≤ ms upper bound 41.17) + coverage analysis.
+- [ ] If anchor decoder underperforms graft: multi-slot anchor fallback.
 
 ### 6. Phase 3 + wrap-up
 - [ ] `allbibles_ms` run + results.
