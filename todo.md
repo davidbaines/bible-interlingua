@@ -57,12 +57,14 @@ the Current status block current and tick tasks `[x]` as they complete.
 - [x] `train_attach.py`; both train + generate paths smoked on the real base.
 - [x] `base_no_nld_ms4` complete (gate passed: still beats baseline w/o Dutch);
       anchors extracted (37.7k verses, 21.4 donors).
-- [~] Attach runs on the K=4 base: `attach_nld_graft` running; then
-      `attach_nld_anchor`. (K=8 base still training; repeat there only if K=8
-      proves materially better in phase 1.)
-- [ ] `experiments/attach-nld-results.md` — bounds ladder (best-other 22.74 <
-      graft < anchor ≤ ms upper bound 41.17) + coverage analysis.
-- [ ] If anchor decoder underperforms graft: multi-slot anchor fallback.
+- [x] Attach runs on the K=4 base: graft **9.25** (code-switch failure),
+      anchor decoder **22.07** (fluent but content-poor, ≈ best-other-copy
+      22.74; ~19 below the 41.17 upper bound). `experiments/attach-nld-results.md`.
+- [x] Diagnosis: limiter is the single-vector anchor bottleneck, NOT the
+      NT→OT vocab cap (seen 23.26 ≈ unseen 22.09 chrF3).
+- [ ] **Decision for user**: run the multi-slot anchor fallback (risk #2, now
+      triggered) — new code + design choice (slot count, learned projection).
+      Recommended next experiment; flagged rather than launched autonomously.
 
 ### 6. Phase 3 + wrap-up
 - [ ] `allbibles_ms` run + results.
