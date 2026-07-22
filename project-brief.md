@@ -85,7 +85,14 @@ does, since their held-out data is in-domain — is itself a contribution.
 
 ## Series 1 outline
 
-Three phases on the licence-clean IE-32 shareable selection (everything
+The purpose is machine translation for languages where the only text we have
+is parts of the Bible. Everything here is trained only on the eBible corpus —
+no outside knowledge — so the scores are a from-scratch baseline. (A separate
+future track could ask how well a large model such as Claude translates an
+unseen Old Testament from its New Testament; that is out of scope here, and
+this series gives the baseline such a track would try to beat.)
+
+Two phases on the licence-clean IE-32 shareable selection (everything
 publishable, cc-by-sa-4.0; baseline `ie_big_shareable` 47.01/37.03/43.82):
 
 1. **Multi-source fusion** — concatenate K renderings of each verse as the
@@ -97,7 +104,6 @@ publishable, cc-by-sa-4.0; baseline `ie_big_shareable` 47.01/37.03/43.82):
    embeddings, frozen; train only a Dutch decoder on its NT; decode the OT
    anchors. Bounds ladder: best-other-copy < graft < anchor ≤ ms-run's nld
    row (upper bound).
-3. **RAG + LLM post-editing** — outside-knowledge track, reported separately.
 
 Plus one **all-shareable-full-Bibles** run (~90 languages) of the winning
 method — the scaled-breadth learning run, still publishable.

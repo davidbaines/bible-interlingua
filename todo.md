@@ -70,7 +70,10 @@ the Current status block current and tick tasks `[x]` as they complete.
 - [x] K=8 confirmed winner (49.90/39.30/46.60; +2.5–2.9 over single-source).
 - [~] `allbibles_ms8` **running** on jobs_backlog (74 shareable langs, K=8,
       120k ceiling; holdouts eng-web/deutkw/hin2017).
-- [ ] `postedit.py` Claude post-edit track on the best attach drafts.
+- [x] LLM post-edit track removed from this series (2026-07-22): Claude can't
+      translate into unseen languages, so it can't help the low-resource case;
+      for major languages it would only measure Claude's own translation. This
+      series is the from-scratch baseline a future Claude track could try to beat.
 - [ ] Attach results doc update (add multi-slot row); allbibles results doc.
 - [ ] Series write-up; publish winning shareable models via gates; memory.
 

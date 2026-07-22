@@ -22,7 +22,16 @@ from NT-only data well enough to draft its OT.
 | 5 | `attach_nld_graft` | frozen #3 + `<2nld>` embedding row + decoder adapters (dim 64), nld NT | attach lower bound |
 | 6 | `attach_nld_anchor` | decoder init from #3, single-slot frozen-anchor memory, nld NT anchor→text; decode 21k OT anchors | headline: between #5 and #1's nld row? beats best-other copy? |
 | 7 | `allbibles_ms` | winner K on all-shareable-full-Bibles selection (~90 langs, one per language; licence check at build) | breadth effect; publishable |
-| — | `postedit_nld` | Claude post-edit of best attach drafts (draft + same-verse deu/eng/dan + retrieved nld NT examples) | outside-knowledge track, reported apart |
+
+**Not in this series (removed 2026-07-22):** an LLM post-edit / RAG track. The
+purpose here is machine translation for languages where the only available text
+is parts of the Bible — Claude has never seen those languages and cannot
+translate into them. For major languages an LLM post-edit would only measure
+Claude's own translation ability, and for the low-resource languages this work
+targets Claude cannot improve the translation at all. A separate future track
+can ask "given a New Testament in an unseen language, how well can Claude
+translate the Old Testament"; this series instead produces the from-scratch
+baseline scores such a track would try to beat.
 
 Budget ~55 H100-hours (≤80 with retune margin), all via ClearML `jobs_backlog`.
 
@@ -93,7 +102,7 @@ Edits: `config.py` (multi-source DataConfig fields + AttachConfig),
 
 New modules: `multisource.py` (sampler/inference/ranking/leakage — template:
 `../m2m_bible_mt/src/samileides/manytomany.py`), `anchors.py`, `attach.py`,
-`train_attach.py`, `coverage.py`, `postedit.py`.
+`train_attach.py`, `coverage.py`.
 
 ## Verification
 
@@ -106,8 +115,9 @@ New modules: `multisource.py` (sampler/inference/ranking/leakage — template:
 
 ## Risks (accepted / designed around)
 
-- **NT→OT vocabulary cap (MTOB)** — instrumented; post-edit phase is the
-  strong mitigation; characterising it is a contribution.
+- **NT→OT vocabulary cap (MTOB)** — instrumented via `coverage.py`;
+  characterising it is a contribution. (Findings show it is not the limiter for
+  the attach runs — the anchor capacity is; see attach-nld-results.md.)
 - Single-slot anchor bottleneck — 8-slot projection fallback.
 - Anchor tag scheme (self-target tag) baked into #4; centred-vs-raw ablation
   free.
