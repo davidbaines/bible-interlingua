@@ -1,0 +1,11 @@
+# Holdouts for the all-shareable-full-Bibles run (74 languages). Same three
+# holdout languages as the IE runs where present in this selection: English
+# here is eng-web (World English Bible; the IE runs used engbsb, so absolute
+# English scores are not directly comparable across selections), German deutkw,
+# Hindi hin2017 — whole OT withheld from each.
+holdouts:
+  eng-web: [OT]
+  deutkw: [OT]
+  hin2017: [OT]
+valid_size: 5000
+seed: 13
