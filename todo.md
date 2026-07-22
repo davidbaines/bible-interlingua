@@ -62,15 +62,17 @@ the Current status block current and tick tasks `[x]` as they complete.
       22.74; ~19 below the 41.17 upper bound). `experiments/attach-nld-results.md`.
 - [x] Diagnosis: limiter is the single-vector anchor bottleneck, NOT the
       NT→OT vocab cap (seen 23.26 ≈ unseen 22.09 chrF3).
-- [ ] **Decision for user**: run the multi-slot anchor fallback (risk #2, now
-      triggered) — new code + design choice (slot count, learned projection).
-      Recommended next experiment; flagged rather than launched autonomously.
+- [x] Multi-slot anchor (user-approved): `anchors.py --slots 8` segment
+      pooling + collator/generation handle [B,slots,d]; 8-slot anchors
+      extracted; `attach_nld_anchor8` **running** on the 3090.
 
 ### 6. Phase 3 + wrap-up
-- [ ] `allbibles_ms` run + results.
-- [ ] `postedit.py` Claude track on best attach drafts; report separately.
-- [ ] Series write-up; publish winning shareable models via gates.
-- [ ] Update plan.md decisions log + memory.
+- [x] K=8 confirmed winner (49.90/39.30/46.60; +2.5–2.9 over single-source).
+- [~] `allbibles_ms8` **running** on jobs_backlog (74 shareable langs, K=8,
+      120k ceiling; holdouts eng-web/deutkw/hin2017).
+- [ ] `postedit.py` Claude post-edit track on the best attach drafts.
+- [ ] Attach results doc update (add multi-slot row); allbibles results doc.
+- [ ] Series write-up; publish winning shareable models via gates; memory.
 
 ## Reference
 
