@@ -95,3 +95,29 @@ def test_anchor_collator_shapes_single_slot_memory():
     assert out["attention_mask"].shape == (2, 1)
     assert out["labels"].shape == (2, 3)
     assert out["decoder_input_ids"].shape == (2, 3)
+
+
+def test_anchor_collator_multi_slot_memory():
+    from samileides.attach import AnchorCollator
+
+    coll = AnchorCollator(pad_id=3)
+    batch = [
+        {"anchor": np.ones((4, 8), dtype=np.float32), "labels": [5, 6, 2]},
+        {"anchor": np.zeros((4, 8), dtype=np.float32), "labels": [7, 2]},
+    ]
+    out = coll(batch)
+    assert out["encoder_memory"].shape == (2, 4, 8)   # [B, slots, d]
+    assert out["attention_mask"].shape == (2, 4)
+
+
+def test_segment_pool_shapes_and_content():
+    from samileides.anchors import _segment_pool
+
+    # 1 row, 6 valid positions (mask first 2 tag tokens off), d=3, 3 slots.
+    hs = torch.arange(8 * 3, dtype=torch.float32).reshape(1, 8, 3)
+    mask = torch.tensor([[0, 0, 1, 1, 1, 1, 1, 1]])
+    out = _segment_pool(hs, mask, slots=3)
+    assert out.shape == (1, 3, 3)
+    # first slot = mean of positions 2,3; last slot = mean of positions 6,7
+    assert torch.allclose(out[0, 0], hs[0, 2:4].mean(0))
+    assert torch.allclose(out[0, 2], hs[0, 6:8].mean(0))

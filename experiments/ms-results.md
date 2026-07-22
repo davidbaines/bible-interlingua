@@ -43,5 +43,20 @@ baseline, so the true fusion gain is marginally larger than shown.
 
 ## ms8_ie_shareable (K=8)
 
-Pending — gated on ms4 passing (it did). Doubles the source budget to test
-whether more renderings keep helping or saturate.
+Task `c52af7bb1b164d728097202d308e8f16`. Same recipe, K=8 (max_src_len 640,
+batch 32×8). Verse-weighted whole-OT chrF3:
+
+| Language | ms8 K=8 | ms4 K=4 | baseline K=1 |
+|---|---|---|---|
+| English | **49.90** | 49.05 | 47.01 |
+| German (deutkw) | **39.30** | 38.62 | 37.03 |
+| Hindi | **46.60** | 45.33 | 43.82 |
+| Dutch (nld1939, upper bound) | **42.05** | 41.17 | — |
+
+**K=8 wins on every language**, by a modest but consistent ~0.7–1.3 chrF3 over
+K=4 — more renderings keep helping, not yet saturating. Total multi-source
+gain over single-source: **+2.5 to +2.9** (English 47.01→49.90). K=8 is the
+config for the phase-3 allbibles run. The attach experiments (phase 2) were
+run on the K=4 base for expediency (anchors already extracted); the
+single-vector-bottleneck conclusion is independent of K, and the Dutch upper
+bound shifts only ~0.9 (41.17→42.05) at K=8.

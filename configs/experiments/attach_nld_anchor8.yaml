@@ -1,0 +1,32 @@
+# Multi-slot anchor decoder (plan risk #2 fallback, triggered by the
+# single-vector result). Identical to attach_nld_anchor but the frozen anchor
+# is 8 memory slots per verse (segment-pooled) instead of 1, testing whether a
+# richer per-verse representation carries enough content to beat the
+# related-language-copy floor (single-slot reached only 22.07 ~ copy 22.74).
+name: attach_nld_anchor8
+phase: attach
+
+data:
+  selection: experiments/selection-ie-shareable-no-nld.csv
+  holdouts: configs/holdouts-no-nld.yaml
+
+model:
+  arch: marian
+
+training:
+  seed: 13
+
+inference:
+  beam: 5
+  length_penalty: 1.0
+  max_length: 192
+
+attach:
+  mode: anchor_decoder
+  base_run: checkpoints/base_no_nld_ms4
+  translation: nld1939
+  anchor_file: checkpoints/base_no_nld_ms4/anchors/anchors-centered-s8.npy
+  nt_dev_size: 500
+  lr: 1.0e-4
+  max_steps: 20000
+  dropout: 0.3

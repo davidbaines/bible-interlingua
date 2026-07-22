@@ -38,14 +38,37 @@ from .multisource import GREEK_CODE, present_by_vref
 from .preprocess import normalise, source_tag, target_tag
 
 
+def _segment_pool(hs: "torch.Tensor", pool_mask: "torch.Tensor", slots: int):
+    """Pool per-token states into ``slots`` contiguous segments per row.
+
+    slots=1 is the plain masked mean. slots>1 splits each row's *valid* (non-tag,
+    non-pad) positions into ``slots`` near-equal contiguous chunks and mean-pools
+    each — preserving roughly positional content summaries (which words appear
+    where) that a single mean discards. Returns [n, slots, d].
+    """
+    n, _, d = hs.shape
+    out = hs.new_zeros((n, slots, d))
+    for i in range(n):
+        idx = pool_mask[i].nonzero(as_tuple=True)[0]
+        if idx.numel() == 0:
+            continue
+        chunks = torch.tensor_split(idx, slots)
+        for s, ch in enumerate(chunks):
+            if ch.numel():
+                out[i, s] = hs[i, ch].mean(0)
+            else:  # fewer valid tokens than slots: repeat the last populated
+                out[i, s] = out[i, max(s - 1, 0)]
+    return out
+
+
 @torch.no_grad()
-def pool_encoder_states(model, sp, device, texts: list[str], batch_size: int = 128
-                        ) -> np.ndarray:
-    """Attention-masked mean of encoder final states over non-tag positions.
+def pool_encoder_states(model, sp, device, texts: list[str], batch_size: int = 128,
+                        slots: int = 1) -> np.ndarray:
+    """Encoder-state pooling over non-tag positions.
 
     ``texts`` are already tagged (``<2xx> <1xx> body``); the two leading tag
-    tokens are excluded from the mean so the anchor reflects verse content, not
-    the language markers. Returns an [n, d_model] fp32 array.
+    tokens are excluded so the anchor reflects verse content, not the language
+    markers. Returns [n, d_model] for slots=1, else [n, slots, d_model].
     """
     device = torch.device(device) if isinstance(device, str) else device
     pad, eos = sp.pad_id(), sp.eos_id()
@@ -69,6 +92,9 @@ def pool_encoder_states(model, sp, device, texts: list[str], batch_size: int = 1
                             enabled=device.type == "cuda"):
             hs = model.get_encoder()(input_ids=ids, attention_mask=mask).last_hidden_state
         hs = hs.float()
+        if slots > 1:
+            out.append(_segment_pool(hs, pool_mask, slots).cpu().numpy())
+            continue
         summed = (hs * pool_mask.unsqueeze(-1)).sum(1)
         counts = pool_mask.sum(1, keepdim=True).clamp(min=1)
         out.append((summed / counts).cpu().numpy())
@@ -76,7 +102,7 @@ def pool_encoder_states(model, sp, device, texts: list[str], batch_size: int = 1
 
 
 def build_anchors(run_dir: Path, out_dir: Path, centered: bool = True,
-                  batch_size: int = 128) -> Path:
+                  batch_size: int = 128, slots: int = 1) -> Path:
     cfg, sp, model, device = load_run(run_dir)
     data = prepare(cfg)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -85,8 +111,9 @@ def build_anchors(run_dir: Path, out_dir: Path, centered: bool = True,
     present = present_by_vref(data.splits.train, data.splits.valid)
     vrefs = list(data.verses.index)
     d_model = cfg.model.d_model
+    shape_tail = (slots, d_model) if slots > 1 else (d_model,)
 
-    # Accumulate per-language sums, then optionally centre, then average.
+    # Accumulate per-language vectors, then optionally centre, then average.
     lang_vectors: dict[str, dict[str, np.ndarray]] = {}  # lang -> {vref: vec}
     donors_by_lang: dict[str, list[str]] = {}
     for v in vrefs:
@@ -104,11 +131,11 @@ def build_anchors(run_dir: Path, out_dir: Path, centered: bool = True,
             code = data.language_of[lang_id]
             texts = [f"{target_tag(code)} {source_tag(code)} {normalise(data.verses.at[v, lang_id])}"
                      for v in lang_vrefs]
-        vecs = pool_encoder_states(model, sp, device, texts, batch_size)
+        vecs = pool_encoder_states(model, sp, device, texts, batch_size, slots=slots)
         lang_vectors[lang_id] = dict(zip(lang_vrefs, vecs))
         print(f"  encoded {lang_id} ({code}): {len(lang_vrefs)} verses")
 
-    # Per-language mean-centering (subtract each donor language's mean).
+    # Per-language mean-centering (subtract each donor language's per-slot mean).
     means = {}
     if centered:
         for lang_id, vmap in lang_vectors.items():
@@ -117,26 +144,28 @@ def build_anchors(run_dir: Path, out_dir: Path, centered: bool = True,
             for v in vmap:
                 vmap[v] = vmap[v] - mean
 
-    # Cross-language average per verse.
-    raw = np.zeros((len(vrefs), d_model), dtype=np.float32)
+    # Cross-language average per verse (slot-wise when multi-slot).
+    raw = np.zeros((len(vrefs), *shape_tail), dtype=np.float32)
     n_donors = np.zeros(len(vrefs), dtype=np.int32)
     idx = {v: i for i, v in enumerate(vrefs)}
     for vmap in lang_vectors.values():
         for v, vec in vmap.items():
             raw[idx[v]] += vec
             n_donors[idx[v]] += 1
-    anchors = raw / np.maximum(n_donors[:, None], 1)
+    denom = np.maximum(n_donors, 1).reshape((-1,) + (1,) * len(shape_tail))
+    anchors = raw / denom
 
-    suffix = "centered" if centered else "raw"
+    suffix = ("centered" if centered else "raw") + (f"-s{slots}" if slots > 1 else "")
     np.save(out_dir / f"anchors-{suffix}.npy", anchors.astype(np.float16))
     (out_dir / "vrefs.txt").write_text("\n".join(vrefs), encoding="utf-8")
     np.save(out_dir / "donor-counts.npy", n_donors)
     if means:
-        np.savez(out_dir / "language-means.npz", **{k: v for k, v in means.items()})
+        np.savez(out_dir / f"language-means{'-s'+str(slots) if slots>1 else ''}.npz",
+                 **{k: v for k, v in means.items()})
     covered = int((n_donors > 0).sum())
     print(f"Anchors: {covered}/{len(vrefs)} verses covered "
           f"(mean {n_donors[n_donors>0].mean():.1f} donors), "
-          f"{suffix}, d={d_model} -> {out_dir}")
+          f"{suffix}, shape={anchors.shape} -> {out_dir}")
     return out_dir / f"anchors-{suffix}.npy"
 
 
@@ -186,12 +215,15 @@ def main() -> None:
     p.add_argument("--out", default=None, help="output dir (default <run>/anchors)")
     p.add_argument("--raw", action="store_true", help="also skip mean-centering")
     p.add_argument("--sanity", action="store_true", help="run retrieval sanity check")
+    p.add_argument("--slots", type=int, default=1,
+                   help="anchor memory slots per verse (>1 = multi-slot segment pooling)")
     p.add_argument("--batch-size", type=int, default=128)
     args = p.parse_args()
     run_dir = Path(args.run)
     out_dir = Path(args.out) if args.out else run_dir / "anchors"
-    path = build_anchors(run_dir, out_dir, centered=not args.raw, batch_size=args.batch_size)
-    if args.sanity:
+    path = build_anchors(run_dir, out_dir, centered=not args.raw,
+                         batch_size=args.batch_size, slots=args.slots)
+    if args.sanity and args.slots == 1:
         retrieval_sanity(run_dir, path)
 
 

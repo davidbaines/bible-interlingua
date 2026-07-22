@@ -167,7 +167,7 @@ class AnchorPairDataset(Dataset):
     def __getitem__(self, idx):
         labels = self.sp.encode(self.tgt[idx], out_type=int)[: self.max_len - 1]
         labels.append(self.eos)
-        anchor = self.anchors[self.vi[self.vrefs[idx]]]
+        anchor = self.anchors[self.vi[self.vrefs[idx]]]  # [d] or [slots, d]
         return {"anchor": anchor.astype(np.float32), "labels": labels}
 
 
@@ -195,10 +195,13 @@ class AnchorCollator:
             shifted = ([self.decoder_start_id] + t)[:tgt_max]
             dec_in.append(shifted + [self.pad_id] * (tgt_max - len(shifted)))
             anchors.append(b["anchor"])
-        memory = torch.tensor(np.stack(anchors), dtype=torch.float32).unsqueeze(1)
+        stacked = torch.tensor(np.stack(anchors), dtype=torch.float32)
+        # Single-slot anchors are [B, d] -> add the slot axis; multi-slot are
+        # already [B, slots, d].
+        memory = stacked.unsqueeze(1) if stacked.ndim == 2 else stacked
         return {
             "encoder_memory": memory,
-            "attention_mask": torch.ones(len(batch), 1, dtype=torch.long),
+            "attention_mask": torch.ones(memory.shape[0], memory.shape[1], dtype=torch.long),
             "labels": torch.tensor(labels, dtype=torch.long),
             "decoder_input_ids": torch.tensor(dec_in, dtype=torch.long),
         }
@@ -229,9 +232,10 @@ def generate_from_anchors(model, sp, device, vrefs, anchors, vref_index,
         mem = torch.tensor(
             np.stack([anchors[vref_index[v]] for v in chunk]), dtype=torch.float32,
             device=device,
-        ).unsqueeze(1)
+        )
+        mem = mem.unsqueeze(1) if mem.ndim == 2 else mem  # [B,d] or [B,slots,d]
         enc_out = BaseModelOutput(last_hidden_state=mem)
-        attn = torch.ones(len(chunk), 1, dtype=torch.long, device=device)
+        attn = torch.ones(mem.shape[0], mem.shape[1], dtype=torch.long, device=device)
         out = model.generate(
             encoder_outputs=enc_out, attention_mask=attn,
             num_beams=beam, length_penalty=length_penalty,
