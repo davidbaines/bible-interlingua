@@ -11,9 +11,13 @@ on the identical verse set.
 | Rung | Method | chrF3 |
 |---|---|---|
 | Upper bound | multi-source, nld trained NT-only *from birth* (ms4 nld row) | **41.17** |
+| Attach (anchor ×8) | frozen **8-slot** anchor + full decoder trained on nld NT | **25.09** |
 | — | best other-language copy (German deutkw) | 22.74 |
-| Attach (anchor) | frozen single-vector anchor + full decoder trained on nld NT | **22.07** |
+| Attach (anchor ×1) | frozen **single-vector** anchor + full decoder trained on nld NT | **22.07** |
 | Attach (graft) | frozen decoder + 1 tag row + dim-64 adapters | **9.25** |
+
+(Upper bound is 41.17 on the K=4 base used for these attach runs; 42.05 on the
+K=8 winner base — the ladder ordering is unchanged.)
 
 Two clean findings, both against expectation in instructive ways:
 
@@ -48,20 +52,35 @@ MTOB vocabulary ceiling is *not* what caps this run — the single-vector
 anchor bottleneck is (85% top-1 retrieval, `anchor-retrieval.md`). Proper-noun
 copy accuracy is 11.6%, consistent with the "right genre, wrong names" picture.
 
-## Interpretation and next step
+### 3. Enriching the anchor helps monotonically — but content-at-inference wins
 
-The interlingua idea is half-vindicated: a frozen shared representation plus a
-small NT-only decoder yields *fluent* drafts of a genuinely new language — but
-a single pooled vector per verse cannot carry enough verse-specific content to
-beat a related-language copy. The two ways to supply content both point the
-same way:
+Moving from 1 to 8 anchor slots (segment-pooled) lifts the anchor decoder
+**22.07 → 25.09** (+3.0), clearing the related-language-copy floor and raising
+proper-noun copy 11.6% → 15.5%. So a richer frozen representation *does* carry
+more verse-specific content — the bottleneck is capacity, exactly as the
+single-vector diagnosis predicted, and it is partly relievable. But 8 slots
+still leaves the drafts confabulating names (GEN 10:1 → "son of Zebedee …
+Salaam and Salmon" vs "Shem, Ham and Japhet") and sits **~17 chrF3 below the
+multi-source upper bound**. The gap between "compress verse content into a
+fixed frozen representation" and "supply the content at inference" is large and
+does not close cheaply with more slots.
 
-- **Supply content at inference** (multi-source): the strong, working result
-  (phase 1; upper bound 41.17).
-- **Enrich the frozen representation** (plan risk #2 fallback): a learned
-  *multi-slot* anchor (project each verse to N memory slots rather than 1),
-  which the 85%/wrong-names diagnostics predict would materially lift the
-  anchor decoder. This is the recommended next experiment.
+## Interpretation
+
+The interlingua idea is real but bounded. A frozen shared representation plus a
+small NT-only decoder yields fluent drafts of a genuinely new language, and
+enriching the representation (more slots) monotonically recovers content — but
+with steep diminishing returns relative to simply having the content available
+at generation time. For the practical task (drafting a missing OT), the clear
+winner is **multi-source fusion** (phase 1: +2.5–2.9 over single-source,
+held-out-language OT at 42 chrF3). The anchor track's contribution is the clean
+characterisation of *why*: fluency and content are separable, and content is
+the part a fixed interlingua struggles to hold.
+
+Possible further work (not in this series): learned attention-pooled slots
+(vs. fixed segment pooling), many more slots, or a hybrid that retrieves and
+concatenates related-language renderings at inference (the RAG/multi-source
+convergence).
 
 ## Provenance
 
