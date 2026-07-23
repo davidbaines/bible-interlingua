@@ -62,20 +62,21 @@ the Current status block current and tick tasks `[x]` as they complete.
       22.74; ~19 below the 41.17 upper bound). `experiments/attach-nld-results.md`.
 - [x] Diagnosis: limiter is the single-vector anchor bottleneck, NOT the
       NT→OT vocab cap (seen 23.26 ≈ unseen 22.09 chrF3).
-- [x] Multi-slot anchor (user-approved): `anchors.py --slots 8` segment
-      pooling + collator/generation handle [B,slots,d]; 8-slot anchors
-      extracted; `attach_nld_anchor8` **running** on the 3090.
+- [x] Multi-slot anchor (user-approved): 8-slot anchor decoder **25.09**
+      (+3.0, clears the copy floor; still ~17 below upper bound). More capacity
+      recovers some content but content-at-inference wins.
 
-### 6. Phase 3 + wrap-up
+### 6. Phase 3 + wrap-up — SERIES COMPLETE
 - [x] K=8 confirmed winner (49.90/39.30/46.60; +2.5–2.9 over single-source).
-- [~] `allbibles_ms8` **running** on jobs_backlog (74 shareable langs, K=8,
-      120k ceiling; holdouts eng-web/deutkw/hin2017).
-- [x] LLM post-edit track removed from this series (2026-07-22): Claude can't
-      translate into unseen languages, so it can't help the low-resource case;
-      for major languages it would only measure Claude's own translation. This
-      series is the from-scratch baseline a future Claude track could try to beat.
-- [ ] Attach results doc update (add multi-slot row); allbibles results doc.
-- [ ] Series write-up; publish winning shareable models via gates; memory.
+- [x] `allbibles_ms8` (74 shareable langs): breadth collapses held-out OT
+      (German 19.67, Hindi 20.34 vs ms8 39.30/46.60) — at/below copy floor;
+      underfit (early-stop ~3 epochs). Weights lost to an SSL upload failure;
+      scores recovered from console. `experiments/allbibles-results.md`.
+- [x] LLM post-edit track removed (2026-07-22): out of scope; Claude can't
+      translate into unseen languages.
+- [x] Results docs: ms-results, attach-nld-results, anchor-retrieval,
+      allbibles-results. `ms8_ie_shareable` published to the Hub. Memory updated.
+- [ ] Optional: publish a README summarising the series (findings below).
 
 ## Reference
 
